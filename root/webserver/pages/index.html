@@ -1,0 +1,96 @@
+<html ng-app="epsonEditor">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Epson ASC</title>
+	<link rel="shortcut icon" href="" />
+	<link rel="stylesheet" type="text/css" href="/pages/lib/bootstrap/css/bootstrap.min.css">
+	<link rel="stylesheet" type="text/css" href="/pages/css/epson.css">
+</head>
+
+<body ng-controller="epsonCtrl">
+
+	<div class="jumbotron"> </div>
+
+	<div class="dougtron">
+
+		<h4>Sistema</h4>
+
+		<div class="container">
+			<div id="alert_success" class="alert alert-success" style="display: none;"> </div>
+			<div id="alert_error" class="alert alert-danger" style="display: none;"> </div>
+		</div>
+
+		<div class="form-group input-group">
+			<span class="input-group-text"> IP do Servidor </span>			
+			<input name="" class="form-control" ng-model="serverIp" placeholder="IP do Servidor." type="text">
+		</div> <!-- form-group// -->
+
+		<div class="form-group input-group">
+			<span class="input-group-text"> Senha Amqp </span>			
+			<input name="" class="form-control" ng-model="amqpKey" placeholder="Deixe vazio se não for alterar a senha atual." type="text">
+		</div> <!-- form-group// -->
+
+		<div class="form-group input-group">
+			<span class="input-group-text"> Login RabitMQ </span>			
+			<input name="" class="form-control" ng-model="rabbitmqLogin" placeholder="Login RabitMQ." type="text">
+		</div> <!-- form-group// -->
+
+		<div class="form-group input-group">
+			<span class="input-group-text"> Senha RabitMQ </span>			
+			<input name="" class="form-control" ng-model="rabbitmqPassword" placeholder="Deixe vazio se não for alterar a senha atual." type="text">
+		</div> <!-- form-group// -->
+
+
+		<h4>Update</h4>
+
+		<div class="form-group input-group">
+			<span class="input-group-text"> Ip do Servidor Lwm2m </span>			
+			<input name="" class="form-control" ng-model="lwm2mServerIp" placeholder="Ip do servidor lwm2m." type="text">
+		</div> <!-- form-group// -->		
+
+		<div class="form-group input-group">
+			<span class="input-group-text"> Ip do Bootstrap Lwm2m </span>			
+			<input name="" class="form-control" ng-model="lwm2mBootstrapIp" placeholder="Ip do bootstrap lwm2m." type="text">
+		</div> <!-- form-group// -->
+
+		<div class="checkbox" style="float: left;"> 
+			<label><input type="checkbox" ng-model="lwm2mDtlsEnable" ng-true-value="'yes'" ng-false-value="'no'"> Habilitar DTLS</label> 
+		</div>
+
+		<div class="form-group input-group">
+			<span class="input-group-text"> Identidade DTLS </span>			
+			<input name="" class="form-control" ng-model="lwm2mDtlsIdentity" placeholder="Login do DTLS." type="text">
+		</div> <!-- form-group// -->
+
+		<div class="form-group input-group" style="text-align: center;">
+			<span class="input-group-text"> Senha DTLS </span>			
+			<input name="" class="form-control" ng-model="lwm2mDtlsKey" placeholder="Deixe vazio se não for alterar a senha atual." type="text">
+		</div> <!-- form-group// -->
+
+
+
+		<h4>Wifi</h4>
+
+		<div class="checkbox" style="float: left;"> 
+			<label><input type="checkbox" ng-model="wifiEnable" ng-true-value="'yes'" ng-false-value="'no'"> Habilitar Wifi</label> 
+		</div>
+
+		<div class="form-group input-group">
+			<span class="input-group-text"> SSID </span>			
+			<input name="" class="form-control" ng-model="wifiSsid" placeholder="Ssid a se conectar" type="text">
+		</div> <!-- form-group// -->
+
+		<div class="form-group input-group" style="text-align: center;">
+			<span class="input-group-text"> Senha </span>			
+			<input name="" class="form-control" ng-model="wifiPsk" placeholder="Deixe vazio se não for alterar a senha atual." type="text">
+		</div> <!-- form-group// -->
+
+		
+		<button class="btn btn-warning" style="width: 25%; color: Gray; font-size: 20px; margin-bottom: 25px" ng-click="sendConfig()" >Enviar</button>
+	</div>
+
+	<script src="/pages/lib/angular/angular.min.js"></script>
+	<script src="/pages/js/controllers/epsonCtrl.js"></script>
+</body>
+</html>

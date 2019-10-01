@@ -1,0 +1,58 @@
+#!/bin/sh
+#
+# Enable the poweroff pin
+# If the power button is pressed for more than 0.5 sec,
+# then turn the board off upon release
+
+# Enable the poweroff pin
+# It has a strong pulldown to 0, so I aid it by writing 1
+if [ ! -d "/sys/class/gpio/pioE15/" ]; then
+    echo 143   > /sys/class/gpio/export
+fi
+echo "out" > /sys/class/gpio/pioE15/direction
+echo 1     > /sys/class/gpio/pioE15/value
+
+#Check if the Power button is pressed in the start up to enable the Web interface
+status=`cat /sys/class/gpio/pioE15/value`
+if [ $status -eq 1 ]; then
+    # If pressed in the start up, enable the Web interface
+    echo " [*] Starting the Web Interface. The Power button was pressed."
+
+    #Creating this file so the applicantions can know that the Web interface is ON
+    touch /tmp/web_enabled
+
+    cd /root/webserver
+    python3 webserver.py &
+
+    #Wait for the pin to go to 0 (button released), to prevent an undesired reboot
+    while [ $status -eq 1 ]; do
+        status=`cat /sys/class/gpio/pioE15/value`
+        sleep 0.1
+    done
+fi
+
+pb_count=0   # power button count
+while true; do
+    # Continuosly check for the power button.
+    status=`cat /sys/class/gpio/pioE15/value`
+    if [ $status -eq 1 ]; then
+        # If pressed, count for how much continuos time
+        pb_count=$(expr $pb_count + 1)
+    else
+        # the power button is not pressed
+        if [ $pb_count -lt 5 ]; then
+            # if power button was pressed less than 5 * 0.1 sec, then reset the counting and ignore it
+            pb_count=0
+        else
+            # the power button was pressed for at least 5 * 0.1 sec and now was released.
+            # so, power off the board
+            echo "****"
+            echo "* Power button press detected"
+            echo "* Power off in progress..."
+            echo "****"
+            poweroff
+            sleep 40000d # just wait for the poweroff command to do it's mojo
+        fi
+    fi
+    sleep 0.1
+done

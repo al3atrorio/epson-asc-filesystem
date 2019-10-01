@@ -1,0 +1,31 @@
+html, body {
+    height: 100%;
+    background-size: cover;
+    background:whitesmoke;
+}
+
+.jumbotron {
+    height: 330px;
+    background-size: cover;
+
+    background: url('../img/epson.jpg') center top no-repeat;
+    background:linear-gradient(rgba(245,245,245, 0), rgba(245,245,245, 0), rgba(245,245,245, 0), rgba(245,245,245, 0), rgba(245,245,245, 1)),
+    url(../img/epson.jpg);
+    background-position: 50% 23%;
+  }
+
+.dougtron {
+    width: 650px;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 20px;
+}
+
+.form-control {
+    margin-bottom: 20px;
+}
+
+span {
+    width: 190px;
+}

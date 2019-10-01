@@ -1,0 +1,80 @@
+#!/bin/sh
+#
+# Check if there was an update and validate image.
+#
+
+start() {
+        echo " [update] Checking if there was an update."
+        
+	update=`fw_printenv update | cut -f 2 -d "="`
+	need_validation=`fw_printenv need_validation | cut -f 2 -d "="`
+
+	if [ "$update" = "1" ]; then
+		echo " [update] The system was updated."
+
+		if [ "$need_validation" != "1" ]; then
+			echo " [update] UPDATE ERROR - INVALID BOOTLOADER VARIABLE !!!"
+			echo " [update] The \"need_validation\" variable should be 1."
+			echo " [update] The update will proceed, but there is a bug in the update chain."
+			echo " [update] Contact the developers."
+		fi
+
+		echo " [update] Validating image."
+		#Do the validation here and put the result in the $result variable.
+		result="0"
+
+		if [ "$result" = "0" ]; then
+			echo " [update] The image is OK. Registering partition as official."
+			fw_setenv update 0
+			fw_setenv need_validation 0
+			
+			echo " [update] Creating the update config file for the main application."
+			echo "{ \"update\": \"1\", \"result\": \"0\" }" > /tmp/update.json
+
+			echo " [update] Calling update script."
+			/root/update/update_tasks.sh
+
+			echo " [update] The update was Successful!"
+		else
+			echo " [update] The image is broken. Rebooting to go back to previous image."
+			reboot
+		fi
+	elif [ "$update" = "0" ]; then
+		
+		if [ "$need_validation" = "0" ]; then
+			echo " [update] There was no update. Starting normally."
+		else
+			echo " [update] Oops! The previous update was NOT OK."
+			echo " [update] Creating the update config file for the main application with error."
+			echo "{ \"update\": \"1\", \"result\": \"1\" }" > /tmp/update.json
+			fw_setenv need_validation 0
+		fi
+	else
+		echo " [update] UPDATE ERROR - INVALID BOOTLOADER VARIABLE !!!"
+		echo " [update] The system will start, but there is a bug in the update chain."
+		echo " [update] Contact the developers."		
+	fi
+}
+
+stop() {
+        echo " [update] Nothing to do on reboot regarding the update. OK"
+}
+
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  restart|reload)
+        stop
+        start
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+
+exit $?
+

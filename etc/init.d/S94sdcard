@@ -1,0 +1,40 @@
+#!/bin/sh
+#
+# Start sdcard
+#
+
+device="/dev/mmcblk0p1"
+
+start() {
+  
+  if [ -e "$device" ]; then
+        echo " [sdcard] SD-Card connected. Mounting..."
+        mount $device
+	echo " [sdcard] SD-Card mounted."
+  else
+        echo " [sdcard] SD-Card not connected."
+  fi
+  
+}
+
+stop() {
+        echo " [sdcard] Nothing to do on reboot regarding Sd-Card. OK"
+}
+
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  restart|reload)
+        stop
+        start
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+
+exit $? 

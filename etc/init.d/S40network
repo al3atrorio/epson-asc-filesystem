@@ -1,0 +1,44 @@
+#!/bin/sh
+#
+# Start the network....
+#
+
+# Debian ifupdown needs the /run/network lock directory
+mkdir -p /run/network
+
+mac_eth0=`fw_printenv mac_eth0 | cut -d '=' -f2`
+mac_eth1=`fw_printenv mac_eth1 | cut -d '=' -f2`
+
+case "$1" in
+  start)
+	printf "Starting network: "
+	/sbin/ifup -a
+
+	ifconfig eth0 hw ether ${mac_eth0}
+	ifconfig eth1 hw ether ${mac_eth1}
+	ifconfig eth0 up
+	ifconfig eth1 up
+	brctl addbr br0
+	ifconfig br0 hw ether ${mac_eth0}
+	brctl addif br0 eth1
+	brctl addif br0 eth0
+	ifconfig br0 up
+
+	[ $? = 0 ] && echo "OK" || echo "FAIL"
+	;;
+  stop)
+	printf "Stopping network: "
+	/sbin/ifdown -a
+	[ $? = 0 ] && echo "OK" || echo "FAIL"
+	;;
+  restart|reload)
+	"$0" stop
+	"$0" start
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit $?
+

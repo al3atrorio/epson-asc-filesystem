@@ -1,0 +1,139 @@
+#!/bin/sh
+#
+# Start the device's hardware
+#
+
+start() {
+        echo " [hardware] Mounting data Partition."  
+        ubiattach /dev/ubi_ctrl -m 10
+        mount -t ubifs ubi1:data /data
+
+        echo " [hardware] Starting Gpio Driver."        
+        modprobe epsongpio
+        
+        echo " [hardware] Enabling PWM ports"
+        echo 0 > /sys/class/pwm/pwmchip0/export
+        echo 1 > /sys/class/pwm/pwmchip0/export
+        
+        echo 1 > /sys/class/pwm/pwmchip0/pwm0/period
+        echo 0 > /sys/class/pwm/pwmchip0/pwm0/duty_cycle
+        echo 1 > /sys/class/pwm/pwmchip0/pwm1/period
+        echo 0 > /sys/class/pwm/pwmchip0/pwm1/duty_cycle
+        
+        # Enable VIO_12V, used by the input GPIOs and the LEDs ribbon
+        echo 116 > /sys/class/gpio/export
+        echo "out" > /sys/class/gpio/pioD20/direction
+        echo 0   > /sys/class/gpio/pioD20/value
+
+	# Enable Usb 1 enable pin D26
+        echo 122 > /sys/class/gpio/export
+        echo "out" > /sys/class/gpio/pioD26/direction
+        echo 1   > /sys/class/gpio/pioD26/value
+        
+        # Enable Usb 2 enable pin D28
+        echo 124 > /sys/class/gpio/export
+        echo "out" > /sys/class/gpio/pioD28/direction
+        echo 1   > /sys/class/gpio/pioD28/value
+        
+        # Enable Usb 3 enable pin D30
+        echo 126 > /sys/class/gpio/export
+        echo "out" > /sys/class/gpio/pioD30/direction
+        echo 1   > /sys/class/gpio/pioD30/value
+
+	# Wifi Reset - NRST_CNTR2
+        echo 135 > /sys/class/gpio/export
+        echo "out" > /sys/class/gpio/pioE7/direction
+        echo 1   > /sys/class/gpio/pioE7/value
+
+	# Wifi Enable - EN_WIFI
+        echo 44 > /sys/class/gpio/export
+        echo "out" > /sys/class/gpio/pioB12/direction
+        echo 1   > /sys/class/gpio/pioB12/value
+
+        # Enable the LED strip - There are 9 GPIOs
+        echo 20 > /sys/class/gpio/export
+        echo "out" > /sys/class/gpio/pioA20/direction
+        echo 0   > /sys/class/gpio/pioA20/value
+
+        echo 21 > /sys/class/gpio/export
+        echo "out" > /sys/class/gpio/pioA21/direction
+        echo 0   > /sys/class/gpio/pioA21/value
+
+        echo 22 > /sys/class/gpio/export
+        echo "out" > /sys/class/gpio/pioA22/direction
+        echo 0   > /sys/class/gpio/pioA22/value
+
+        echo 23 > /sys/class/gpio/export
+        echo "out" > /sys/class/gpio/pioA23/direction
+        echo 0   > /sys/class/gpio/pioA23/value
+
+        echo 24 > /sys/class/gpio/export
+        echo "out" > /sys/class/gpio/pioA24/direction
+        echo 0   > /sys/class/gpio/pioA24/value
+
+        echo 25 > /sys/class/gpio/export
+        echo "out" > /sys/class/gpio/pioA25/direction
+        echo 0   > /sys/class/gpio/pioA25/value
+
+        echo 26 > /sys/class/gpio/export
+        echo "out" > /sys/class/gpio/pioA26/direction
+        echo 0   > /sys/class/gpio/pioA26/value
+
+        echo 101 > /sys/class/gpio/export
+        echo "out" > /sys/class/gpio/pioD5/direction
+        echo 0   > /sys/class/gpio/pioD5/value
+
+        echo 102 > /sys/class/gpio/export
+        echo "out" > /sys/class/gpio/pioD6/direction
+        echo 0   > /sys/class/gpio/pioD6/value
+
+	#Enable Pins do detect the internal Rfid modules
+        echo 117 > /sys/class/gpio/export
+        echo 118 > /sys/class/gpio/export
+        echo 119 > /sys/class/gpio/export
+
+        #BLE: PD15 as input
+        [ ! -e /sys/class/gpio/pioD15 ] && echo 111 > /sys/class/gpio/export
+        echo "in" > /sys/class/gpio/pioD15/direction
+        #BLE: PD16 as output
+        [ ! -e /sys/class/gpio/pioD16 ] && echo 112 > /sys/class/gpio/export
+        echo "out" > /sys/class/gpio/pioD16/direction
+        #BLE: PD17 as input
+        [ ! -e /sys/class/gpio/pioD17 ] && echo 113 > /sys/class/gpio/export
+        echo "in" > /sys/class/gpio/pioD17/direction
+        #BLE: PD18 as output
+        [ ! -e /sys/class/gpio/pioD18 ] && echo 114 > /sys/class/gpio/export
+        echo "out" > /sys/class/gpio/pioD18/direction   
+}
+
+stop() {
+        echo " [hardware] Disabling Gpios energy."
+        echo 1   > /sys/class/gpio/pioD20/value
+        
+        echo " [hardware] Disabling Usbs energy."
+        echo 0   > /sys/class/gpio/pioD26/value
+        echo 0   > /sys/class/gpio/pioD28/value
+        echo 0   > /sys/class/gpio/pioD30/value
+        
+        echo " [hardware] Disabling Wifi energy."
+        echo 0   > /sys/class/gpio/pioB12/value
+}
+
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  restart|reload)
+        stop
+        start
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+
+exit $?
+

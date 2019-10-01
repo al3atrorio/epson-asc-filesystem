@@ -1,0 +1,55 @@
+#!/bin/sh
+#
+# Start wifi
+#
+
+source /data/wifi_config
+
+start() {
+  
+  if [ $wifi_enable == "yes" ]; then
+    echo " [wifi] Starting Wifi..."
+    mount -t debugfs nodev /sys/kernel/debug
+    modprobe wilc_sdio
+    sleep 1
+    echo 0 > /sys/kernel/debug/wilc/wilc_debug_region
+    ifconfig wlan0 up
+
+#Creating Wpa_Supplicant config
+    echo "ctrl_interface=/var/run/wpa_supplicant"  > /tmp/wpa_supplicant.conf
+    echo "ap_scan=1"                              >> /tmp/wpa_supplicant.conf
+    echo "network={"                              >> /tmp/wpa_supplicant.conf
+    echo "    ssid=\"${wifi_ssid}\""              >> /tmp/wpa_supplicant.conf
+    echo "    psk=\"${wifi_psk}\""                >> /tmp/wpa_supplicant.conf
+    echo "}"                                      >> /tmp/wpa_supplicant.conf
+
+    wpa_supplicant -B -i wlan0 -c /tmp/wpa_supplicant.conf
+
+#Restarting dhcp client to consider the wlan0 interface
+    /etc/init.d/S41dhcpcd restart
+  else
+    echo " [wifi] Wifi not enabled."
+  fi  
+}
+
+stop() {
+  echo " [wifi] Nothing to do on reboot regarding Wifi. OK"
+}
+
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  restart|reload)
+        stop
+        start
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+
+exit $? 

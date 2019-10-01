@@ -1,0 +1,59 @@
+#!/bin/sh
+#
+# Start main applications
+#
+
+source /data/system_config
+source /data/update_config
+
+mac=`fw_printenv mac_eth0 | cut -d '=' -f2`
+
+start() {
+
+  echo ""
+  echo "****************************************************"
+  echo "****************************************************"
+  echo "******************* Epson ASC **********************"
+  echo "****************************************************"
+  echo "****************************************************"
+  echo ""
+
+  echo "[application] Starting Lwm2m Awa Client"
+  
+  if [ "$lwm2m_dtls_enable" = "yes" ]; then
+    echo "[application] Starting Lwm2m Awa Client with DTLS security"
+    awa_clientd --endPointName ${mac} --bootstrap coap://${lwm2m_bootstrap_ip}:15685 --objDefs /etc/firmware-update.xml --objDefs /etc/device.xml -s --pskIdentity=${lwm2m_dtls_identity} --pskKey=${lwm2m_dtls_key} > /dev/null 2>&1 &
+  else
+    awa_clientd --endPointName ${mac} --bootstrap coap://${lwm2m_bootstrap_ip}:15685 --objDefs /etc/firmware-update.xml --objDefs /etc/device.xml > /dev/null 2>&1 &
+  fi
+
+  echo "[application] Starting the Epson Application"
+  python3 /root/app/main.py &
+}
+
+stop() {
+  echo " [app] Ending the Epson Application"
+  killall python3
+  echo " [app] Turn the display off"
+  python3 /root/app/poweroff_main.py
+  echo " [app] Removing state file"
+  rm -f /media/state.json
+}
+
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  restart|reload)
+        stop
+        start
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+
+exit $?

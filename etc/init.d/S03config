@@ -1,0 +1,70 @@
+#!/bin/sh
+#
+# Create Config
+#
+
+source /data/system_config
+source /data/update_config
+source /data/wifi_config
+source /etc/version
+
+start() {
+  
+  echo " [config] Creating config..."
+
+  mac=`fw_printenv mac_eth0 | cut -d '=' -f2`
+  rfid1=`cat /sys/class/gpio/pioD21/value`
+  rfid2=`cat /sys/class/gpio/pioD22/value`
+  rfid3=`cat /sys/class/gpio/pioD23/value`
+
+#Application Config
+  echo "{"                                                           > /tmp/application.json
+  echo "    \"rabbitmq\": {"                                        >> /tmp/application.json
+  echo "        \"rabbitmq_server_ip\": \"${server_ip}\","          >> /tmp/application.json
+  echo "        \"rabbitmq_login\": \"${rabbitmq_login}\","         >> /tmp/application.json
+  echo "        \"rabbitmq_password\": \"${rabbitmq_password}\""    >> /tmp/application.json
+  echo "    },"                                                     >> /tmp/application.json
+  echo ""                                                           >> /tmp/application.json
+  echo "    \"lwm2m\": {"                                           >> /tmp/application.json
+  echo "        \"lwm2m_bootstrap_ip\": \"${lwm2m_bootstrap_ip}\"," >> /tmp/application.json
+  echo "        \"lwm2m_server_ip\": \"${lwm2m_server_ip}\""        >> /tmp/application.json
+  echo "    },"                                                     >> /tmp/application.json
+  echo ""                                                           >> /tmp/application.json
+  echo "    \"wifi_enable\": \"${wifi_enable}\","                   >> /tmp/application.json
+  echo ""                                                           >> /tmp/application.json
+  echo "    \"mac\": \"${mac}\","                                   >> /tmp/application.json
+  echo ""                                                           >> /tmp/application.json
+  echo "    \"amqp_encryption_key\": \"${amqp_encryption_key}\","   >> /tmp/application.json
+  echo ""                                                           >> /tmp/application.json
+  echo "    \"rfids\": [${rfid1},${rfid2},${rfid3}],"               >> /tmp/application.json
+  echo ""                                                           >> /tmp/application.json
+  echo "    \"version\": \"${version}\""                            >> /tmp/application.json
+  echo "}"                                                          >> /tmp/application.json
+
+#Ntp Config
+  echo "server ${server_ip} iburst prefer minpoll 3 maxpoll 4"       > /tmp/ntp.conf  
+
+  echo " [config] Config created."
+}
+
+stop() {
+        echo " [config] Nothing to do on reboot regarding config. OK"
+}
+
+case "$1" in
+  start)
+        start
+        ;;
+  stop)
+        stop
+        ;;
+  restart|reload)
+        stop
+        start
+        ;;
+  *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac
+
+exit $? 
